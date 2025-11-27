@@ -1,45 +1,14 @@
-name: Lab9 CI - Build Next.js + Docker Push
+FROM node:20-alpine
 
-on:
-  push:
-    branches: ["main"]
-  workflow_dispatch:
+WORKDIR /app
 
-env:
-  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/lab9
+COPY package*.json ./
+RUN npm install
 
-jobs:
-  build-docker-push:
-    runs-on: ubuntu-latest
+COPY . .
 
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+RUN npm run build
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: "20"
+EXPOSE 3000
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build Next.js project
-        run: npm run build
-
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build & Push Docker Image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: |
-            ${{ env.IMAGE_N_
+CMD ["npm", "start"]
